@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     textView = (TextView) findViewById(R.id.tv_step);
   }
-
+    /* start accelometerSensor listener */
   @Override
   public void onStart() {
     super.onStart();
@@ -82,25 +82,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Log.e("LOG", "onDestroy()");
     mSensorManager.unregisterListener(this);
   }
-
+        /*
+        if accelerometer change, it occurs.
+        shake control
+         */
   @Override
   public void onSensorChanged(SensorEvent event) {
     if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-      long currentTime = System.currentTimeMillis();
-      long gabOfTime = (currentTime - lastTime);
+      long currentTime = System.currentTimeMillis();        //current Time (per milliseconds)
+      long gabOfTime = (currentTime - lastTime);            // gap of current and last time
       if (gabOfTime > 100) {
         lastTime = currentTime;
         x = event.values[SensorManager.DATA_X];
         y = event.values[SensorManager.DATA_Y];
         z = event.values[SensorManager.DATA_Z];
 
-        speed = Math.abs(x + y + z - lastX - lastY - lastZ) / gabOfTime * 10000;
-
+        speed = Math.abs(x + y + z - lastX - lastY - lastZ) / gabOfTime * 10000;    // abs(sum of values)
+            //SHAKE_THRESHOLD = 300
         if (speed > SHAKE_THRESHOLD) {
-          //이벤트발생!!
-          isStep = false;
+          //event occured!!
+          isStep = false;       // No count
         } else {
-          isStep = true;
+          isStep = true;        // count
         }
         lastX = event.values[DATA_X];
         lastY = event.values[DATA_Y];
