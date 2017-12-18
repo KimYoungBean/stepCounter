@@ -116,6 +116,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   public void onAccuracyChanged(Sensor sensor, int i) {
 
   }
+  private class AccelometerListener implements SensorEventListener {
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+
+      double accX = event.values[0];
+      double accY = event.values[1];
+      double accZ = event.values[2];
+
+      double angleXZ = Math.atan2(accX, accZ) * 180 / Math.PI;
+      double angleYZ = Math.atan2(accY, accZ) * 180 / Math.PI;
+
+      Log.e("LOG", "ACCELOMETER           [X]:" + String.format("%.4f", event.values[0])
+          + "           [Y]:" + String.format("%.4f", event.values[1])
+          + "           [Z]:" + String.format("%.4f", event.values[2])
+          + "           [angleXZ]: " + String.format("%.4f", angleXZ)
+          + "           [angleYZ]: " + String.format("%.4f", angleYZ));
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+  }
 
   private class GyroscopeListener implements SensorEventListener {
 
