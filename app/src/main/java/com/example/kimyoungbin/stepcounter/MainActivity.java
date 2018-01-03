@@ -17,17 +17,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
   private boolean isPush;
 
+  /* Avoid counting faster than stepping */
   private boolean pocketFlag;
   private boolean callingFlag;
   private boolean handHeldFlag;
   private boolean handTypingFlag;
 
+  /* Set threshold */
   private final double maxPocketThs = 15.0;
   private final double minPocketThs = 11.5;
-  private final double maxCallingThs = 14.9;
-  private final double minCallingThs = 11.4;
-  private final double maxTypingThs = 15.0;
-  private final double minTypingThs = 11.5;
+  private final double maxCallingThs = 12.7;
+  private final double minCallingThs = 11.1;
+  private final double maxTypingThs = 13.5;
+  private final double minTypingThs = 11.0;
+  private final double maxHeldThs = 13.8;
+  private final double minHeldThs = 11.0;
   private final double HandHeldXThs = 1.0;
   private final double HandHeldZThs = 1.5;
   private final double HandTypingThs = 0.5;
@@ -45,8 +49,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private SensorEventListener mGyroLis;
   private Sensor mGgyroSensor = null;
 
-  private Sensor mClsSensor = null;
+  //Using the Closesensor
   private SensorEventListener mClsLis;
+  private Sensor mClsSensor = null;
 
   private TextView mTextView;
 
@@ -87,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     mGgyroSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
     mGyroLis = new GyroscopeListener();
 
+    //Using the Closesensor
     mClsSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
     mClsLis = new SensorEventListener() {
       @Override
@@ -194,12 +200,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       + "           [angleXZ]: " + String.format("%.4f", angleXZ)
       + "           [angleYZ]: " + String.format("%.4f", angleYZ));*/
 
-      /** 주머니에 있을 때 **/
+      /** In the pocket **/
       if (isPocket) {
         if (E > minPocketThs && E < maxPocketThs && pocketFlag) {
           stepCount++;
           Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
-          Log.e("LOG", "주머니에 있을 때");
           Log.e("LOG", String.valueOf(stepCount));
           pocketFlag = false;
 
@@ -211,10 +216,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
           }, 400);
         }
 
+        /** Calling **/
         else if (E > minCallingThs && E < maxCallingThs && callingFlag) {
           stepCount++;
           Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
-          Log.e("LOG", "전화할 때");
           Log.e("LOG", String.valueOf(stepCount));
           callingFlag = false;
 
@@ -228,10 +233,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       }
 
       else {
-        /** 타이핑하면서 걸을 때 **/
+        /** Walking with typing **/
         if (E > minTypingThs && E < maxTypingThs && isHandTyping && handTypingFlag) {
           stepCount++;
-          Log.e("LOG", "타이핑할때");
+          isHandTyping = false;
           Log.e("LOG", String.valueOf(stepCount));
           Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
           handTypingFlag = false;
@@ -243,11 +248,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
           }, 400);
         }
-        /** 그냥 손에 들고 걸을 때 **/
-        else if (E > minTypingThs && E < maxTypingThs && isHandHeld && handHeldFlag) {
+        /** Hand held working **/
+        else if (E > minHeldThs && E < maxHeldThs && isHandHeld && handHeldFlag) {
           stepCount++;
           isHandHeld = false;
-          Log.e("LOG", "손에 들고 걸을 때");
           Log.e("LOG", String.valueOf(stepCount));
           Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
           handHeldFlag = false;
@@ -285,14 +289,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
           + "           [Y]:" + String.format("%.4f", event.values[1])
           + "           [Z]:" + String.format("%.4f", event.values[2])); */
 
-      /* 손에 들고 걸을때의 gyroZ 움직임 감지 */
+      /* detect gyroZ motion when walking with hand */
       if(Math.abs(gyroZ) > HandHeldZThs)
         isHandHeld = true;
-      /* gyroX가 많이 움직인다면 손에 들고 걸을때가 아님 */
+
+      /* if gyroX moves a lot, it is not time to walking with hand */
       if(Math.abs(gyroX) > HandHeldXThs)
         isHandHeld = false;
 
-      /* 타이핑하면서 걸을 때의 미세한 움직임 감지 */
+      /* detect few motion when walking while typing */
       if(Math.abs(gyroX) < HandTypingThs && Math.abs(gyroY) < HandTypingThs && Math.abs(gyroZ) < HandTypingThs)
         isHandTyping = true;
       else
