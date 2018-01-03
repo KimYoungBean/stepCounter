@@ -24,3 +24,10 @@
 > ![xyz](https://user-images.githubusercontent.com/21302833/34510888-f7406930-f09a-11e7-990e-c11ce1ec9e4a.png)
 - angleXZ, angleYZ의 그래프
 > ![xzyz](https://user-images.githubusercontent.com/21302833/34510891-fa660cf0-f09a-11e7-880f-898b222cf4fb.png)
+
+
+#### 해야 할 것
+- magnetic field value 측정 및 계산
+- 귀에 갖다댈 때, 뗄 때 수정
+- 보고서
+- 18/01/05 (금요일) 오후 4시까지
