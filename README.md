@@ -18,3 +18,9 @@
 - *전화하면서 걷기* - **가속센서, 근접센서**
 
 ### 5. 4가지 경우로 측정한 걸음수의 총합을 출력
+
+### Graph
+- X,Y,Z의 그래프
+> ![xyz](https://user-images.githubusercontent.com/21302833/34510888-f7406930-f09a-11e7-990e-c11ce1ec9e4a.png)
+- angleXZ, angleYZ의 그래프
+> ![xzyz](https://user-images.githubusercontent.com/21302833/34510891-fa660cf0-f09a-11e7-880f-898b222cf4fb.png)
