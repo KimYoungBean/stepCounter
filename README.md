@@ -1,33 +1,33 @@
 # stepCounter
 > ### Kyujeong & YoungBean's research project
-### 1. 삼성헬스의 만보기 기능을 스텝카운터 센서를 쓰지 않고 구현
+### 1. Implementation of the Samsung Fitness function without using the step counter sensor
 > <img src="http://blogfiles9.naver.net/MjAxNzA3MjlfMjUz/MDAxNTAxMzE1NTk0NzE0.V9MguvZMU3bmzZKzmEqbMjGsDClxqhyKI3mhd-itsEUg.cUeimuJq60XFNZMYs43oRR7wNUgciulOka5636Io8Yog.PNG.kkkclub1/Screenshot_20170729-160933.png" width="60%" height="30%">
 
-### 2. 4가지의 경우를 구별하여 인식
-1. *손에 들고 걷기*
-2. *주머니에 넣고 걷기*
-3. *문자하면서 걷기*
-4. *전화하면서 걷기*
+### 2. Identify and distinguish four cases
+1. *Holding and walking*
+2. *Pocket and walking*
+3. *Walking with Typing*
+4. *Waling with Calling*
 
-### 3. 가속센서와 자이로센서로 걸음수 측정
+### 3. Measuring the number of steps with acceleration sensor and gyro sensor
 
-### 4. 4가지 경우에 따른 각각의 사용 센서
-- *손에 들고 걷기* - **가속센서, 자이로센서**
-- *주머니에 넣고 걷기* - **가속센서, 근접센서**
-- *문자하면서 걷기* - **가속센서, 자이로센서**
-- *전화하면서 걷기* - **가속센서, 근접센서**
+### 4. Each use sensor according to four cases
+- *Holding and walking* - **Accelerometer, Gyroscope**
+- *Pocket and walking* - **Accelerometer, Proximity Sensor**
+- *Walking with Typing* - **Accelerometer, Gyroscope**
+- *Waling with Calling* - **Accelerometer, Proximity Sensor**
 
-### 5. 4가지 경우로 측정한 걸음수의 총합을 출력
+### 5. Outputs the total number of steps measured in 4 cases
 
 ### Graph
-- X,Y,Z의 그래프
+- Graph of X,Y,Z
 > ![xyz](https://user-images.githubusercontent.com/21302833/34510888-f7406930-f09a-11e7-990e-c11ce1ec9e4a.png)
-- angleXZ, angleYZ의 그래프
+- Graph of angleXZ, angleYZ
 > ![xzyz](https://user-images.githubusercontent.com/21302833/34510891-fa660cf0-f09a-11e7-880f-898b222cf4fb.png)
 
 
-#### 해야 할 것
-- magnetic field value 측정 및 계산
-- 귀에 갖다댈 때, 뗄 때 수정
-- 보고서
-- 18/01/05 (금요일) 오후 4시까지
+#### What to do..
+- magnetic field value measuring & computing
+- proximity
+- documentation
+- untill : 18/01/05 (Friday) 4 P.M.
