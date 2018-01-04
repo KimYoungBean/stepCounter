@@ -32,34 +32,40 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private final double minTypingThs = 11.0;
   private final double maxHeldThs = 13.8;
   private final double minHeldThs = 11.0;
-  private final double HandHeldXThs = 1.0;
-  private final double HandHeldZThs = 1.5;
-  private final double HandTypingThs = 0.5;
+  private final double handHeldXThs = 1.0;
+  private final double handHeldZThs = 1.5;
+  private final double handTypingThs = 0.5;
 
   private int stepCount;
 
-  //Using the Accelometer & Gyroscoper
+  // Using the Accelometer & Gyroscoper
   private SensorManager mSensorManager = null;
 
-  //Using the Accelometer
+  // Using the Accelometer
   private SensorEventListener mAccLis;
   private Sensor mAccelometerSensor = null;
 
-  //Using the Gyroscoper
+  // Using the Gyroscoper
   private SensorEventListener mGyroLis;
   private Sensor mGgyroSensor = null;
 
-  //Using the Closesensor
+  // Using the Closesensor
   private SensorEventListener mClsLis;
   private Sensor mClsSensor = null;
 
   private TextView mTextView;
 
+  // To distinguish state
   private boolean isPocket;
   private boolean isHandHeld;
   private boolean isHandTyping;
+  private boolean isPocketToHand;
 
   private float distance;
+
+  // prevent abnormal count
+  private long startTime;
+  private long endTime;
 
   @Override
   protected void onResume() {
@@ -101,13 +107,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         distance = v[0];
         //Log.e("DISTANCE", String.valueOf(distance));
 
-        if (distance < 8.0) {
-          Handler mHandler = new Handler();
-          mHandler.postDelayed(new Runnable() {
-            public void run() {
-              isPocket = true;
-            }
-          }, 1800);
+        if (distance < 5.0) {
+          startTime = 0;
+          isPocket = true;
         } else {
           isPocket = false;
         }
@@ -183,6 +185,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
 
+      if(startTime == 0)
+        startTime = event.timestamp;
+      else
+        endTime = event.timestamp;
+
+      if(endTime - startTime > 1700000000)
+        isPocketToHand = true;
+      else
+        isPocketToHand = false;
       double accX = event.values[0];
       double accY = event.values[1];
       double accZ = event.values[2];
@@ -193,16 +204,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       double tmp = (accX * accX) + (accY * accY) + (accZ * accZ);
       final double E = Math.sqrt(tmp);
 
-      //Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
-        /*  + "           [Y]:" + String.format("%.4f", event.values[1])
+      /*Log.e("LOG", "ACCELOMETER           [X]:" + String.format("%.4f", event.values[0])
+          + "           [Y]:" + String.format("%.4f", event.values[1])
           + "           [Z]:" + String.format("%.4f", event.values[2])
-          + "           [E]:" + String.format("%.4f", E));
+          + "           [E]:" + String.format("%.4f", E)
       + "           [angleXZ]: " + String.format("%.4f", angleXZ)
       + "           [angleYZ]: " + String.format("%.4f", angleYZ));*/
 
       /** In the pocket **/
       if (isPocket) {
-        if (E > minPocketThs && E < maxPocketThs && pocketFlag) {
+        if (E > minPocketThs && E < maxPocketThs && pocketFlag && isPocketToHand) {
           stepCount++;
           Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
           Log.e("LOG", String.valueOf(stepCount));
@@ -217,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         /** Calling **/
-        else if (E > minCallingThs && E < maxCallingThs && callingFlag) {
+        else if (E > minCallingThs && E < maxCallingThs && callingFlag && isPocketToHand) {
           stepCount++;
           Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
           Log.e("LOG", String.valueOf(stepCount));
@@ -234,11 +245,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
       else {
         /** Walking with typing **/
-        if (E > minTypingThs && E < maxTypingThs && isHandTyping && handTypingFlag) {
+        if (E > minTypingThs && E < maxTypingThs && isHandTyping && handTypingFlag && isPocketToHand) {
           stepCount++;
-          isHandTyping = false;
-          Log.e("LOG", String.valueOf(stepCount));
           Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
+          Log.e("LOG", String.valueOf(stepCount));
+          isHandTyping = false;
           handTypingFlag = false;
 
           Handler mHandler = new Handler();
@@ -252,8 +263,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         else if (E > minHeldThs && E < maxHeldThs && isHandHeld && handHeldFlag) {
           stepCount++;
           isHandHeld = false;
-          Log.e("LOG", String.valueOf(stepCount));
           Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
+          Log.e("LOG", String.valueOf(stepCount));
           handHeldFlag = false;
 
           Handler mHandler = new Handler();
@@ -285,20 +296,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       double gyroY = event.values[1];
       double gyroZ = event.values[2];
 
-      /* Log.e("LOG", "GYROSCOPE           [X]:" + String.format("%.4f", event.values[0])
+       Log.e("LOG", "GYROSCOPE           [X]:" + String.format("%.4f", event.values[0])
           + "           [Y]:" + String.format("%.4f", event.values[1])
-          + "           [Z]:" + String.format("%.4f", event.values[2])); */
+          + "           [Z]:" + String.format("%.4f", event.values[2]));
 
       /* detect gyroZ motion when walking with hand */
-      if(Math.abs(gyroZ) > HandHeldZThs)
+      if(Math.abs(gyroZ) > handHeldZThs)
         isHandHeld = true;
 
       /* if gyroX moves a lot, it is not time to walking with hand */
-      if(Math.abs(gyroX) > HandHeldXThs)
+      if(Math.abs(gyroX) > handHeldXThs)
         isHandHeld = false;
 
       /* detect few motion when walking while typing */
-      if(Math.abs(gyroX) < HandTypingThs && Math.abs(gyroY) < HandTypingThs && Math.abs(gyroZ) < HandTypingThs)
+      if(Math.abs(gyroX) < handTypingThs && Math.abs(gyroY) < handTypingThs
+          && Math.abs(gyroZ) < handTypingThs)
         isHandTyping = true;
       else
         isHandTyping = false;
