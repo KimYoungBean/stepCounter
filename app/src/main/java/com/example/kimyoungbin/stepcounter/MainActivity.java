@@ -577,8 +577,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if((temp<22.5 || temp>=337.5)){
           dir=0;
-        }
-        else if(temp>=22.5 && temp<67.5){
+        }else if(temp>=22.5 && temp<67.5){
           dir=1;
         }else if((temp>=67.5 && temp<112.5)){
           dir=2;
