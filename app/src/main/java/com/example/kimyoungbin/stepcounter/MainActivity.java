@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -15,15 +16,13 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -86,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private int firstValue;
   private int startValue;
   private int lastValue;
-  boolean isStart;
+  private boolean isStart;
 
   // To distinguish state
   private boolean isPocket;
@@ -99,6 +98,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   // prevent abnormal count
   private long startTime;
   private long endTime;
+
+  // View information
+  private int displayWidth;
+  private int displayHeight;
+  private int oneStepWidth;
+  private int oneStepHeight;
+  private int stepCheck;
 
   @Override
   protected void onResume() {
@@ -145,10 +151,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //Using the Accelometer
     mAccelometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-
     //Using the Gyroscoper
     mGgyroSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-
 
     //Using the DirSensor
     mDirSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
@@ -176,8 +180,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       }
     };
 
+    DisplayMetrics dm = getApplicationContext().getResources().getDisplayMetrics();
 
+    displayWidth = dm.widthPixels;
+    displayHeight = dm.heightPixels;
 
+    oneStepWidth = displayWidth / 27;
+    oneStepHeight = displayHeight / 67;
+
+    final ViewEx viewEx = new ViewEx(this);
 
     //Touch Listener for Accelometer
     findViewById(R.id.a_start).setOnClickListener(new Button.OnClickListener(){
@@ -192,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
           mSensorManager.registerListener(mClsLis, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
           mSensorManager.registerListener(mDirLis, mDirSensor, SensorManager.SENSOR_DELAY_NORMAL);
           isPush = false;
+          setContentView(viewEx);
         } else {
           mSensorManager.unregisterListener(mAccLis);
           mSensorManager.unregisterListener(mClsLis);
@@ -202,6 +214,89 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       }
     });
 
+  }
+
+  protected class ViewEx extends View {
+
+    private Bitmap img;
+    int imgWidth;
+    int imgHeight;
+    int curWidth;
+    int curHeight;
+    double doubleCurWidth;
+    double doubleCurHeight;
+    int sizeWidth;
+    int sizeHeight;
+    Rect dst;
+    Path path;
+
+    public ViewEx(Context context) {
+      super(context);
+      setBackgroundColor(Color.WHITE);
+      Resources r = context.getResources();
+      path = new Path();
+      img = BitmapFactory.decodeResource(r, R.drawable.ic_navigation_black_24dp);
+      imgWidth = img.getWidth();
+      imgHeight = img.getHeight();
+
+      curWidth = displayWidth / 2;
+      curHeight = displayHeight / 2;
+
+      /* length of one side */
+      sizeWidth = imgWidth / 4;
+      sizeHeight = imgHeight / 4;
+
+      stepCheck = 1;
+
+      mHandler.sendEmptyMessageDelayed(0, 10);
+    }
+
+    public void onDraw(Canvas canvas) {
+
+      Paint MyPaint = new Paint();
+      MyPaint.setStrokeWidth(5f);
+      MyPaint.setStyle(Paint.Style.STROKE);
+      MyPaint.setColor(Color.RED);
+
+      /* initial location */
+      path.moveTo(curWidth, curHeight);
+
+      /* calculate direction and draw on screen */
+      if(stepCheck == stepCount) {
+        doubleCurWidth = curWidth + (oneStepWidth * Math.sin(Math.toRadians(lastValue)));
+        doubleCurHeight = curHeight - (oneStepHeight * Math.cos(Math.toRadians(lastValue)));
+
+        curWidth = (int)doubleCurWidth;
+        curHeight = (int)doubleCurHeight;
+
+        stepCheck++;
+      }
+
+      /* draw path in a line */
+      path.lineTo(curWidth, curHeight);
+
+      /* rotate image angle */
+      Matrix matrix = new Matrix();
+      matrix.postRotate(lastValue);
+      Bitmap newImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+
+      /* image size, location setting */
+      dst = new Rect(curWidth - sizeWidth, curHeight - sizeHeight, curWidth + sizeWidth, curHeight + sizeHeight);
+      canvas.drawBitmap(newImg, null, dst, null);
+
+      canvas.drawPath(path, MyPaint);
+      super.onDraw(canvas);
+    }
+
+    Handler mHandler=new Handler(){
+
+      public void handleMessage(Message msg)
+      {
+        invalidate();
+        mHandler.sendEmptyMessageDelayed(0, 10);
+      }
+
+    };
   }
 
   @Override
@@ -573,7 +668,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
           lastValue = val;
         }
 
-        int temp = lastValue ;
+        int temp = lastValue;
 
         if((temp<22.5 || temp>=337.5)){
           dir=0;
