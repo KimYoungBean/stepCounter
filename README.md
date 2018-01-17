@@ -26,8 +26,10 @@
 > ![xzyz](https://user-images.githubusercontent.com/21302833/34510891-fa660cf0-f09a-11e7-880f-898b222cf4fb.png)
 
 
+### Drawing Line
+- Drawing Ling following the Path
+- Compass function
+
 #### What to do..
-- magnetic field value measuring & computing
-- proximity
-- documentation
-- untill : 18/01/05 (Friday) 4 P.M.
+- Drawing Line & Compass function
+- untill : 18/01/22 (Monday) 2 P.M.
