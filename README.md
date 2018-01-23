@@ -28,8 +28,10 @@
 
 ### Drawing Line
 - Drawing Ling following the Path
-- Compass function
+- Correct the Compass function
 
 #### What to do..
-- Drawing Line & Compass function
-- untill : 18/01/22 (Monday) 2 P.M.
+- Drawing Line & Correct the Compass function
+- Using the Daum map application
+- We will make the navigation in the Building
+- untill : 18/01/25 (Thursday) 2 P.M.
