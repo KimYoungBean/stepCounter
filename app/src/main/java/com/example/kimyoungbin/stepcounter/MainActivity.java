@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private int firstValue;
   private int startValue;
   private int lastValue;
+  private int compassValue;
   private boolean isStart;
 
   // To distinguish state
@@ -263,8 +264,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
       /* calculate direction and draw on screen */
       if(stepCheck == stepCount) {
-        doubleCurWidth = curWidth + (oneStepWidth * Math.sin(Math.toRadians(lastValue)));
-        doubleCurHeight = curHeight - (oneStepHeight * Math.cos(Math.toRadians(lastValue)));
+        doubleCurWidth = curWidth + (oneStepWidth * Math.sin(Math.toRadians(compassValue)));
+        doubleCurHeight = curHeight - (oneStepHeight * Math.cos(Math.toRadians(compassValue)));
 
         curWidth = (int)doubleCurWidth;
         curHeight = (int)doubleCurHeight;
@@ -668,23 +669,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
           lastValue = val;
         }
 
-        int temp = lastValue;
-
-        if((temp<22.5 || temp>=337.5)){
+        compassValue = lastValue - startValue;
+        Log.e("compassValue : ", String.format("%d",compassValue));
+        if((compassValue<22.5 || compassValue>=337.5)){
+          //north
           dir=0;
-        }else if(temp>=22.5 && temp<67.5){
+        }else if(compassValue>=22.5 && compassValue<67.5){
+          //north-east
           dir=1;
-        }else if((temp>=67.5 && temp<112.5)){
+        }else if((compassValue>=67.5 && compassValue<112.5)){
+          //east
           dir=2;
-        }else if((temp>=112.5 && temp<157.5)){
+        }else if((compassValue>=112.5 && compassValue<157.5)){
+          //east-south
           dir=3;
-        }else if((temp>=157.5 && temp < 202.5)){
+        }else if((compassValue>=157.5 && compassValue < 202.5)){
+          //south
           dir=4;
-        }else if((temp>=202.5 && temp<247.5)){
+        }else if((compassValue>=202.5 && compassValue<247.5)){
+          //west-south
           dir=5;
-        }else if((temp>=247.5 && temp<292.5)){
+        }else if((compassValue>=247.5 && compassValue<292.5)){
+          //west
           dir=6;
-        }else if((temp>=292.5 && temp<337.5)){
+        }else if((compassValue>=292.5 && compassValue<337.5)){
+          //north-west
           dir=7;
         }
       }
