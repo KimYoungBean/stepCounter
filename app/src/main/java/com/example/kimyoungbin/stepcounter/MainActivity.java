@@ -48,15 +48,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private final double handTypingThs = 0.5;
 
   private int stepCount;
-  private int nCnt;
-  private int neCnt;
-  private int eCnt;
-  private int seCnt;
-  private int sCnt;
-  private int swCnt;
-  private int wCnt;
-  private int nwCnt;
-  private int dir;
+  private int compassCount;
 
   // Using the Accelometer & Gyroscoper
   private SensorManager mSensorManager = null;
@@ -77,15 +69,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private SensorEventListener mDirLis;
   private Sensor mDirSensor = null;
 
-  private TextView mTextView;
-  private TextView resultView[] = new TextView[8];
-
 
   // Value
-  private int firstValue;
   private int startValue;
+  private int firstValue;
   private int lastValue;
   private int compassValue;
+  //private int lastCompassValue;
+  private int temp;
   private boolean isStart;
 
   // To distinguish state
@@ -118,25 +109,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    mTextView = (TextView) findViewById(R.id.tv_count);
-    resultView[0] = (TextView)findViewById(R.id.tv_n);
-    resultView[1] = (TextView)findViewById(R.id.tv_ne);
-    resultView[2] = (TextView)findViewById(R.id.tv_e);
-    resultView[3] = (TextView)findViewById(R.id.tv_se);
-    resultView[4] = (TextView)findViewById(R.id.tv_s);
-    resultView[5] = (TextView)findViewById(R.id.tv_sw);
-    resultView[6] = (TextView)findViewById(R.id.tv_w);
-    resultView[7] = (TextView)findViewById(R.id.tv_nw);
-
-    dir = 0;
-    nCnt=0;
-    neCnt=0;
-    eCnt=0;
-    seCnt=0;
-    sCnt=0;
-    swCnt=0;
-    wCnt=0;
-    nwCnt=0;
 
     isPush = true;
     pocketFlag = true;
@@ -144,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     handTypingFlag = true;
     isPocket = false;
     stepCount = 0;
+    compassCount = 0;
     isStart = false;
 
     //Using the Sensors
@@ -278,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
       /* rotate image angle */
       Matrix matrix = new Matrix();
-      matrix.postRotate(lastValue);
+      matrix.postRotate(compassValue);
       Bitmap newImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
 
       /* image size, location setting */
@@ -366,50 +339,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       if (isPocket) {
         if (E > minPocketThs && E < maxPocketThs && pocketFlag && isPocketToHand) {
           stepCount++;
-          switch (dir){
-            case 0:
-              nCnt++;
-              str = ""+nCnt;
-              resultView[0].setText(str);
-              break;
-            case 1:
-              neCnt++;
-              str = ""+neCnt;
-              resultView[1].setText(str);
-              break;
-            case 2:
-              eCnt++;
-              str = ""+eCnt;
-              resultView[2].setText(str);
-              break;
-            case 3:
-              seCnt++;
-              str = ""+seCnt;
-              resultView[3].setText(str);
-              break;
-            case 4:
-              sCnt++;
-              str = ""+sCnt;
-              resultView[4].setText(str);
-              break;
-            case 5:
-              swCnt++;
-              str = ""+swCnt;
-              resultView[5].setText(str);
-              break;
-            case 6:
-              wCnt++;
-              str = ""+wCnt;
-              resultView[6].setText(str);
-              break;
-            case 7:
-              nwCnt++;
-              str = ""+nwCnt;
-              resultView[7].setText(str);
-              break;
-            default:
-              break;
-          }
+
           Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
           Log.e("LOG", String.valueOf(stepCount));
           pocketFlag = false;
@@ -425,50 +355,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         /** Calling **/
         else if (E > minCallingThs && E < maxCallingThs && callingFlag && isPocketToHand) {
           stepCount++;
-          switch (dir){
-            case 0:
-              nCnt++;
-              str = ""+nCnt;
-              resultView[0].setText(str);
-              break;
-            case 1:
-              neCnt++;
-              str = ""+neCnt;
-              resultView[1].setText(str);
-              break;
-            case 2:
-              eCnt++;
-              str = ""+eCnt;
-              resultView[2].setText(str);
-              break;
-            case 3:
-              seCnt++;
-              str = ""+seCnt;
-              resultView[3].setText(str);
-              break;
-            case 4:
-              sCnt++;
-              str = ""+sCnt;
-              resultView[4].setText(str);
-              break;
-            case 5:
-              swCnt++;
-              str = ""+swCnt;
-              resultView[5].setText(str);
-              break;
-            case 6:
-              wCnt++;
-              str = ""+wCnt;
-              resultView[6].setText(str);
-              break;
-            case 7:
-              nwCnt++;
-              str = ""+nwCnt;
-              resultView[7].setText(str);
-              break;
-            default:
-              break;
-          }
+
           //Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
           //Log.e("LOG", String.valueOf(stepCount));
           callingFlag = false;
@@ -486,50 +373,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         /** Walking with typing **/
         if (E > minTypingThs && E < maxTypingThs && isHandTyping && handTypingFlag && isPocketToHand) {
           stepCount++;
-          switch (dir){
-            case 0:
-              nCnt++;
-              str = ""+nCnt;
-              resultView[0].setText(str);
-              break;
-            case 1:
-              neCnt++;
-              str = ""+neCnt;
-              resultView[1].setText(str);
-              break;
-            case 2:
-              eCnt++;
-              str = ""+eCnt;
-              resultView[2].setText(str);
-              break;
-            case 3:
-              seCnt++;
-              str = ""+seCnt;
-              resultView[3].setText(str);
-              break;
-            case 4:
-              sCnt++;
-              str = ""+sCnt;
-              resultView[4].setText(str);
-              break;
-            case 5:
-              swCnt++;
-              str = ""+swCnt;
-              resultView[5].setText(str);
-              break;
-            case 6:
-              wCnt++;
-              str = ""+wCnt;
-              resultView[6].setText(str);
-              break;
-            case 7:
-              nwCnt++;
-              str = ""+nwCnt;
-              resultView[7].setText(str);
-              break;
-            default:
-              break;
-          }
+
           //Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
           //Log.e("LOG", String.valueOf(stepCount));
           isHandTyping = false;
@@ -545,50 +389,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         /** Hand held working **/
         else if (E > minHeldThs && E < maxHeldThs && isHandHeld && handHeldFlag) {
           stepCount++;
-          switch (dir){
-            case 0:
-              nCnt++;
-              str = ""+nCnt;
-              resultView[0].setText(str);
-              break;
-            case 1:
-              neCnt++;
-              str = ""+neCnt;
-              resultView[1].setText(str);
-              break;
-            case 2:
-              eCnt++;
-              str = ""+eCnt;
-              resultView[2].setText(str);
-              break;
-            case 3:
-              seCnt++;
-              str = ""+seCnt;
-              resultView[3].setText(str);
-              break;
-            case 4:
-              sCnt++;
-              str = ""+sCnt;
-              resultView[4].setText(str);
-              break;
-            case 5:
-              swCnt++;
-              str = ""+swCnt;
-              resultView[5].setText(str);
-              break;
-            case 6:
-              wCnt++;
-              str = ""+wCnt;
-              resultView[6].setText(str);
-              break;
-            case 7:
-              nwCnt++;
-              str = ""+nwCnt;
-              resultView[7].setText(str);
-              break;
-            default:
-              break;
-          }
+
           isHandHeld = false;
           //Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
           //Log.e("LOG", String.valueOf(stepCount));
@@ -602,9 +403,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
           }, 400);
         }
       }
-
-      mTextView.setText(String.format("%d", (int) stepCount));
-
     }
 
     @Override
@@ -654,47 +452,44 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private class mDirectionListener implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
-      if(event.sensor.getType() == Sensor.TYPE_ORIENTATION){
+      if(event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
         String str;
         int val = 0;
         //str = "azimuth(z): "+(int)event.values[0];
-        val = (int)event.values[0];
+        val = (int) event.values[0];
+        if (compassCount < 2) {
+          if (isStart == true) {
+            startValue = val;
+            firstValue = val;
+            lastValue = val;
+            compassCount++;
+          }
+          if(compassCount == 2){
+            startValue = val;
+            firstValue = val;
+            isStart = false;
+          }
 
-        if(isStart == true){
-          firstValue = val;
-          startValue = val;
-          isStart = false;
+          compassValue = 0;
+          Log.e("compassValue : ", String.format("compass: %d, temp: %d, start: %d, last: %d, first: %d", compassValue, temp, startValue, lastValue, firstValue));
         }else{
+          //lastCompassValue = compassValue;
           firstValue = lastValue;
           lastValue = val;
-        }
-
-        compassValue = lastValue - startValue;
-        Log.e("compassValue : ", String.format("%d",compassValue));
-        if((compassValue<22.5 || compassValue>=337.5)){
-          //north
-          dir=0;
-        }else if(compassValue>=22.5 && compassValue<67.5){
-          //north-east
-          dir=1;
-        }else if((compassValue>=67.5 && compassValue<112.5)){
-          //east
-          dir=2;
-        }else if((compassValue>=112.5 && compassValue<157.5)){
-          //east-south
-          dir=3;
-        }else if((compassValue>=157.5 && compassValue < 202.5)){
-          //south
-          dir=4;
-        }else if((compassValue>=202.5 && compassValue<247.5)){
-          //west-south
-          dir=5;
-        }else if((compassValue>=247.5 && compassValue<292.5)){
-          //west
-          dir=6;
-        }else if((compassValue>=292.5 && compassValue<337.5)){
-          //north-west
-          dir=7;
+          compassValue = lastValue - startValue;
+          temp = lastValue - firstValue;
+          if (temp < 0) {
+            temp = temp + 360;
+          }
+          if(compassValue < 0){
+            compassValue = compassValue + 360;
+          }
+          /*
+          if(temp<5){
+            compassValue = lastCompassValue;
+          }
+          */
+          Log.e("compassValue : ", String.format("compass: %d, start: %d, last: %d, first: %d", compassValue, startValue, lastValue, firstValue));
         }
       }
     }
