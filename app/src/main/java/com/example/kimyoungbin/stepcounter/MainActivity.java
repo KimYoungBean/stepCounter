@@ -217,8 +217,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       curHeight = displayHeight / 2;
 
       /* length of one side */
-      sizeWidth = imgWidth / 4;
-      sizeHeight = imgHeight / 4;
+      sizeWidth = imgWidth / 2;
+      sizeHeight = imgHeight / 2;
 
       stepCheck = 1;
 
