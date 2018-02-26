@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.hardware.Sensor;
@@ -16,13 +17,14 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -98,6 +100,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   private int oneStepHeight;
   private int stepCheck;
 
+  private Handler mHandler;
+
   @Override
   protected void onResume() {
     super.onResume();
@@ -108,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-
 
     isPush = true;
     pocketFlag = true;
@@ -165,16 +168,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     final ViewEx viewEx = new ViewEx(this);
 
     //Touch Listener for Accelometer
-    findViewById(R.id.a_start).setOnClickListener(new Button.OnClickListener(){
-      public void onClick(View v){
+    findViewById(R.id.a_start).setOnClickListener(new Button.OnClickListener() {
+      public void onClick(View v) {
         if (isPush) {
           mDirLis = new mDirectionListener();
           mAccLis = new AccelometerListener();
           mGyroLis = new GyroscopeListener();
           isStart = true;
-          mSensorManager.registerListener(mAccLis, mAccelometerSensor, SensorManager.SENSOR_DELAY_UI);
-          mSensorManager.registerListener(mGyroLis, mGgyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
-          mSensorManager.registerListener(mClsLis, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
+          mSensorManager
+              .registerListener(mAccLis, mAccelometerSensor, SensorManager.SENSOR_DELAY_UI);
+          mSensorManager
+              .registerListener(mGyroLis, mGgyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
+          mSensorManager
+              .registerListener(mClsLis, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY),
+                  SensorManager.SENSOR_DELAY_FASTEST);
           mSensorManager.registerListener(mDirLis, mDirSensor, SensorManager.SENSOR_DELAY_NORMAL);
           isPush = false;
           setContentView(viewEx);
@@ -197,12 +204,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int imgHeight;
     int curWidth;
     int curHeight;
+    int startWidth;
+    int startHeight;
     double doubleCurWidth;
     double doubleCurHeight;
     int sizeWidth;
     int sizeHeight;
     Rect dst;
     Path path;
+    final int divRatio = 2;
+    boolean scaleFlag;
+    int scale;
+
+    List <Pair <Double, Double>> pathPair = new ArrayList <Pair <Double, Double>> ();
 
     public ViewEx(Context context) {
       super(context);
@@ -213,19 +227,29 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       imgWidth = img.getWidth();
       imgHeight = img.getHeight();
 
-      curWidth = displayWidth / 2;
-      curHeight = displayHeight / 2;
+      startWidth = displayWidth / 2;
+      startHeight = displayHeight / 2;
+
+      curWidth = startWidth;
+      curHeight = startHeight;
 
       /* length of one side */
       sizeWidth = imgWidth / 2;
       sizeHeight = imgHeight / 2;
 
       stepCheck = 1;
+      scaleFlag = false;
+      scale = 1;
 
-      mHandler.sendEmptyMessageDelayed(0, 10);
+      path.moveTo(startWidth, startHeight);
+
+      mHandler = new Handler();
     }
 
+
     public void onDraw(Canvas canvas) {
+
+      super.onDraw(canvas);
 
       Paint MyPaint = new Paint();
       MyPaint.setStrokeWidth(5f);
@@ -233,21 +257,43 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       MyPaint.setColor(Color.RED);
 
       /* initial location */
-      path.moveTo(curWidth, curHeight);
+      //path.moveTo(curWidth, curHeight);
 
       /* calculate direction and draw on screen */
-      if(stepCheck == stepCount) {
-        doubleCurWidth = curWidth + (oneStepWidth * Math.sin(Math.toRadians(compassValue)));
-        doubleCurHeight = curHeight - (oneStepHeight * Math.cos(Math.toRadians(compassValue)));
+      if (stepCheck == stepCount) {
 
-        curWidth = (int)doubleCurWidth;
-        curHeight = (int)doubleCurHeight;
+        double widthAngle = Math.sin(Math.toRadians(compassValue));
+        double heightAngle = Math.cos(Math.toRadians(compassValue));
 
+        doubleCurWidth = curWidth + oneStepWidth * widthAngle;
+        doubleCurHeight = curHeight - oneStepHeight * heightAngle;
+
+        pathPair.add(Pair.create(widthAngle, heightAngle));
+
+        curWidth = (int) doubleCurWidth;
+        curHeight = (int) doubleCurHeight;
+
+        scaleFlag = true;
         stepCheck++;
       }
 
       /* draw path in a line */
       path.lineTo(curWidth, curHeight);
+
+      /* 일정 거리 이상 움직였을 때 지도를 축소 */
+      if(curWidth <= 200 || curWidth >= 880 || curHeight <= 400 || curHeight >= 1600  && scaleFlag) {
+        /*canvas.save();
+        float scaleFactor = (float) 0.5;
+        canvas.scale(scaleFactor, scaleFactor);*/
+
+        path.reset();
+        oneStepWidth /= divRatio;
+        oneStepHeight /= divRatio;
+        scaleFact();
+
+        scale *= 2;
+        scaleFlag = false;
+      }
 
       /* rotate image angle */
       Matrix matrix = new Matrix();
@@ -255,22 +301,50 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
       Bitmap newImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
 
       /* image size, location setting */
-      dst = new Rect(curWidth - sizeWidth, curHeight - sizeHeight, curWidth + sizeWidth, curHeight + sizeHeight);
+      dst = new Rect(curWidth - sizeWidth, curHeight - sizeHeight, curWidth + sizeWidth,
+          curHeight + sizeHeight);
       canvas.drawBitmap(newImg, null, dst, null);
 
       canvas.drawPath(path, MyPaint);
-      super.onDraw(canvas);
+
+      /** 몇 걸음 걸었는지, 몇 미터 걸었는지 **/
+      Paint textp = new Paint();
+      textp.setColor(Color.BLACK);
+      textp.setTextSize(50);
+      textp.setTextAlign(Align.LEFT);
+      double stepDistance = stepCount * 0.75;
+
+      canvas.drawText(String.valueOf(stepCount) + "Step", 25, 100, textp);
+      canvas.drawText(String.valueOf(stepDistance) + "M", 25, 180, textp);
+      canvas.drawText("1 : " + String.valueOf(scale), 25, 260, textp);
+
+      mHandler.postDelayed(new Runnable() {
+        @Override
+        public void run() {
+          invalidate();
+        }
+      }, 10);
     }
 
-    Handler mHandler=new Handler(){
 
-      public void handleMessage(Message msg)
-      {
-        invalidate();
-        mHandler.sendEmptyMessageDelayed(0, 10);
+    public void scaleFact()
+    {
+      path.moveTo(startWidth, startHeight);
+
+      curWidth = startWidth;
+      curHeight = startHeight;
+
+      for(Pair i : pathPair) {
+        double dWidth = curWidth + oneStepWidth * (double) i.first;
+        double dHeight = curHeight - oneStepHeight * (double) i.second;
+
+        curWidth = (int) dWidth;
+        curHeight = (int) dHeight;
+
+        path.lineTo(curWidth, curHeight);
       }
+    }
 
-    };
   }
 
   @Override
@@ -309,15 +383,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent event) {
       String str;
 
-      if(startTime == 0)
+      if (startTime == 0) {
         startTime = event.timestamp;
-      else
+      } else {
         endTime = event.timestamp;
+      }
 
-      if(endTime - startTime > 1700000000)
+      if (endTime - startTime > 1700000000) {
         isPocketToHand = true;
-      else
+      } else {
         isPocketToHand = false;
+      }
       double accX = event.values[0];
       double accY = event.values[1];
       double accZ = event.values[2];
@@ -367,11 +443,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
           }, 400);
         }
-      }
-
-      else {
+      } else {
         /** Walking with typing **/
-        if (E > minTypingThs && E < maxTypingThs && isHandTyping && handTypingFlag && isPocketToHand) {
+        if (E > minTypingThs && E < maxTypingThs && isHandTyping && handTypingFlag
+            && isPocketToHand) {
           stepCount++;
 
           //Log.e("LOG", "ACCELOMETER           [E]:" + String.format("%.4f", E));
@@ -427,19 +502,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
           + "           [Z]:" + String.format("%.4f", event.values[2]));
        */
       /* detect gyroZ motion when walking with hand */
-      if(Math.abs(gyroZ) > handHeldZThs)
+      if (Math.abs(gyroZ) > handHeldZThs) {
         isHandHeld = true;
+      }
 
       /* if gyroX moves a lot, it is not time to walking with hand */
-      if(Math.abs(gyroX) > handHeldXThs)
+      if (Math.abs(gyroX) > handHeldXThs) {
         isHandHeld = false;
+      }
 
       /* detect few motion when walking while typing */
-      if(Math.abs(gyroX) < handTypingThs && Math.abs(gyroY) < handTypingThs
-          && Math.abs(gyroZ) < handTypingThs)
+      if (Math.abs(gyroX) < handTypingThs && Math.abs(gyroY) < handTypingThs
+          && Math.abs(gyroZ) < handTypingThs) {
         isHandTyping = true;
-      else
+      } else {
         isHandTyping = false;
+      }
 
     }
 
@@ -450,9 +528,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
   }
 
   private class mDirectionListener implements SensorEventListener {
+
     @Override
     public void onSensorChanged(SensorEvent event) {
-      if(event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
+      if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
         String str;
         int val = 0;
         //str = "azimuth(z): "+(int)event.values[0];
@@ -464,15 +543,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             lastValue = val;
             compassCount++;
           }
-          if(compassCount == 2){
+          if (compassCount == 2) {
             startValue = val;
             firstValue = val;
             isStart = false;
           }
 
           compassValue = 0;
-          Log.e("compassValue : ", String.format("compass: %d, temp: %d, start: %d, last: %d, first: %d", compassValue, temp, startValue, lastValue, firstValue));
-        }else{
+          Log.e("compassValue : ", String
+              .format("compass: %d, temp: %d, start: %d, last: %d, first: %d", compassValue, temp,
+                  startValue, lastValue, firstValue));
+        } else {
           //lastCompassValue = compassValue;
           firstValue = lastValue;
           lastValue = val;
@@ -481,7 +562,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
           if (temp < 0) {
             temp = temp + 360;
           }
-          if(compassValue < 0){
+          if (compassValue < 0) {
             compassValue = compassValue + 360;
           }
           /*
@@ -489,7 +570,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             compassValue = lastCompassValue;
           }
           */
-          Log.e("compassValue : ", String.format("compass: %d, start: %d, last: %d, first: %d", compassValue, startValue, lastValue, firstValue));
+          Log.e("compassValue : ", String
+              .format("compass: %d, start: %d, last: %d, first: %d", compassValue, startValue,
+                  lastValue, firstValue));
         }
       }
     }
